@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  db:
+    container_name: db
+    image: mysql:9
+    environment:
+      MYSQL_ROOT_PASSWORD: root@123
+      MYSQL_USER: test
+      MYSQL_PASSWORD: test@123
+      MYSQL_DATABASE: test_db
+    networks:
+      - mynet
+    volumes:
+      - mysql-data:/var/lib/mysql
+    restart: always
+    healthcheck:
+      test: ["CMD","mysqladmin","ping","-h","localhost","-uroot","-pTest@123"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    
+  app:
+    container_name: app_cont
+    build:
+      context: .
+    image: flask-app
+    environment:
+      FLASK_ENV: development
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - mynet
+    ports:
+      - 5000:5000
+
+networks:
+  mynet:
+
+volumes:
+  mysql-data:
